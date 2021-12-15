@@ -1,20 +1,5 @@
 import java.util.*;
 
-class MyResult implements  Comparator {
-    char c;
-    int value;
-
-    MyResult(char c, int value) {
-        this.c = c;
-        this.value = value;
-    }
-
-    @Override
-    public int compare(Object o1, Object o2) {
-        return ((MyResult)o1).value - ((MyResult)o2).value;
-    }
-}
-
 public class Day14 {
 
     public static void main(String[] args) {
@@ -27,17 +12,20 @@ public class Day14 {
         if (scan.hasNextLine())
             scan.nextLine();
 
-        Map<String, String> map = new HashMap<>();
+        Map<String, List<String>> map = new HashMap<>();
         while (scan.hasNextLine()) {
             String line = scan.nextLine();
             String[] words = line.split("\\s+");
-            map.put(words[0], words[2]);
+            List<String> l = new LinkedList<>();
+            l.add(words[0].charAt(0)+words[2]+"");
+            l.add(words[2]+words[0].charAt(1)+"");
+            map.put(words[0], l);
         }
 
-        System.out.println("Answer Part 1: " + template(s, map));
+        System.out.println("Answer Part 1: " + template2(s, map, 40));
     }
 
-    public static long template(String s, Map<String, String> map) {
+    public static long template1(String s, Map<String, String> map) {
         StringBuilder sb = new StringBuilder(s);
         for (int x = 0; x < 40; x++) {
             int initialLength = sb.length();
@@ -61,5 +49,37 @@ public class Day14 {
             index++;
 
         return res[res.length-1]-res[index];
+    }
+
+    public static long template2(String s, Map<String, List<String>> map, int count) {
+        HashMap<String, Long> initialMap = new HashMap<>();
+        for(int i=0;i<s.length()-1;i++){
+            initialMap.put(s.substring(i, i+2), initialMap.getOrDefault(s.substring(i, i+2), 0L) + 1);
+        }
+
+        for(int i=0;i<count;i++){
+            HashMap<String, Long> tempMap = new HashMap<>();
+            for(String key: initialMap.keySet()){
+                for(String value: map.get(key)){
+                    tempMap.put(value, tempMap.getOrDefault(value, 0L) + initialMap.get(key));
+                }
+            }
+
+            initialMap = tempMap;
+        }
+
+        HashMap<Character, Long> countMap = new HashMap<>();
+        for(String key: initialMap.keySet()) {
+            countMap.put(key.charAt(1), countMap.getOrDefault(key.charAt(1), 0L) + initialMap.get(key));
+        }
+        countMap.put(s.charAt(0), countMap.getOrDefault(s.charAt(0), 0L) + 1);
+
+        Long min = Long.MAX_VALUE;
+        Long max = Long.MIN_VALUE;
+        for(Character c: countMap.keySet()){
+            min = Math.min(min, countMap.get(c));
+            max = Math.max(max, countMap.get(c));
+        }
+        return max-min;
     }
 }
